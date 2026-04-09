@@ -3,7 +3,6 @@
 > A production-grade multi-agent system that autonomously searches 7 academic databases in parallel, synthesizes findings across papers, and delivers structured research reports with citation grounding, contradiction detection, and confidence scoring — streamed token by token in real time.
  
 **Live Demo:** [paper-mind-deployment.vercel.app](https://paper-mind-deployment.vercel.app)  
-**Backend API:** [paperminddeployment.onrender.com/docs](https://paperminddeployment.onrender.com/docs)
  
 [![Python](https://img.shields.io/badge/Python-3.11-3776ab?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
