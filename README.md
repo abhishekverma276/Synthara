@@ -14,9 +14,8 @@
  
 ---
  
-## Demo
- 
-[![PaperMind Demo](https://drive.google.com/file/d/1N1kYi-Y_DtZqZEE0K56GQQRg1DAN9FZW/view?usp=sharing)
+## Demo Video:
+https://drive.google.com/file/d/1N1kYi-Y_DtZqZEE0K56GQQRg1DAN9FZW/view?usp=sharing
  
 > ▶ Click to watch — multi-agent research pipeline in action
  
