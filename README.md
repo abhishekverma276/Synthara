@@ -226,5 +226,5 @@ MIT — see [LICENSE](LICENSE).
 ---
 
 <div align="center">
-  <sub>Built by <a href="https://github.com/yourusername">Abhishek Verma</a></sub>
+  <sub>Built by <a href="https://www.linkedin.com/in/abhishekverma276/"> Abhishek Verma</a></sub>
 </div>
