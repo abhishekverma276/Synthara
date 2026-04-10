@@ -1,21 +1,20 @@
-<div align="center">
+# 🧠 PaperMind — Multi-Agent AI Research Assistant
 
-<img src="papermind-react/public/favicon.svg" width="72" height="72" alt="PaperMind logo" />
-
-# PaperMind
-
-**Multi-Agent AI Research Assistant**
-
-*Deploy autonomous AI agents across 7 academic databases. Get a structured, cited research report in minutes — not hours.*
-
+> A production-grade multi-agent system that autonomously searches 7 academic databases in parallel, synthesizes findings across papers, and delivers structured research reports with citation grounding, contradiction detection, and confidence scoring — streamed token by token in real time.
+  
 [![Python](https://img.shields.io/badge/Python-3.11-3776ab?logo=python&logoColor=white)](https://python.org)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![LangGraph](https://img.shields.io/badge/LangGraph-0.2-7c3aed)](https://langchain-ai.github.io/langgraph)
+[![LangGraph](https://img.shields.io/badge/LangGraph-1.1-6f42c1)](https://langchain-ai.github.io/langgraph)
 [![React](https://img.shields.io/badge/React-18-61dafb?logo=react&logoColor=white)](https://react.dev)
-[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20DB-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
-[![License](https://img.shields.io/badge/License-MIT-gold)](LICENSE)
+[![Supabase](https://img.shields.io/badge/Supabase-Auth%20%2B%20pgvector-3ecf8e?logo=supabase&logoColor=white)](https://supabase.com)
+[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
 
-[Live Demo](https://paper-mind-deployment.vercel.app/)
+---
+
+## Live Video:
+https://drive.google.com/file/d/1N1kYi-Y_DtZqZEE0K56GQQRg1DAN9FZW/view?usp=sharing
+
+> ▶ Click to watch — multi-agent research pipeline in action
 
 </div>
 
