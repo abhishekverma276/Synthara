@@ -18,7 +18,7 @@
 
 ---
 
-[Features](#-features) · [Architecture](#-architecture) · [Agent Pipeline](#-agent-pipeline) · [Tech Stack](#-tech-stack) · [API](#-api-reference) · [Screenshots](#-screenshots)
+[Features](#-features) · [Architecture](#-architecture) · [Agent Pipeline](#-agent-pipeline) · [Tech Stack](#-tech-stack) · [API](#-api-reference)
 
 </div>
 
