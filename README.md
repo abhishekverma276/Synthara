@@ -19,211 +19,345 @@
 
 ---
 
-## What is PaperMind?
+<div align="center">
 
-PaperMind is a full-stack AI research assistant that replaces hours of literature review with a single query. It orchestrates a team of specialised AI agents — each responsible for one stage of the research pipeline — and streams their progress live to the browser via WebSockets.
+# 🔬 PaperMind
+### Multi-Agent Research Intelligence
 
-**Who it's for:**
-- Researchers and academics who need to synthesize literature fast
-- Students preparing literature reviews or dissertations
-- Engineers tracking the state of the art in a technical domain
-- Anyone who has spent an afternoon clicking through Google Scholar
+**AI-powered academic literature review — search, synthesize, cite, in minutes.**
 
----
+![Version](https://img.shields.io/badge/version-1.1-gold?style=flat-square)
+![Stack](https://img.shields.io/badge/stack-FastAPI%20%2B%20React%20%2B%20LangGraph-blueviolet?style=flat-square)
+![LLM](https://img.shields.io/badge/LLM-Ollama%20%7C%20Groq%20%7C%20Gemini-orange?style=flat-square)
+![Status](https://img.shields.io/badge/status-private%20beta-green?style=flat-square)
 
-## Feature Highlights
-
-| Feature | Details |
-|---|---|
-| **Multi-agent pipeline** | LangGraph supervisor routes tasks across 4 specialist agents with deterministic state-machine logic |
-| **7 academic sources** | arXiv, OpenAlex, Europe PMC, Crossref, PubMed, Semantic Scholar, CORE — queried in parallel |
-| **RAG over your PDFs** | Upload your own papers; ChromaDB embeds and retrieves them per query |
-| **Real-time streaming** | WebSocket streams every agent event + report tokens as they generate |
-| **Citation graph** | D3.js force-directed graph showing how your result papers cite each other, powered by Semantic Scholar |
-| **Export anywhere** | Download report as Markdown, PDF (html2canvas + jsPDF), or Word (.docx) |
-| **Follow-up questions** | LLM generates 3 contextual follow-up queries after every report |
-| **Search history** | Every session saved to Supabase; reload any past report in one click |
-| **Per-user knowledge base** | Vector store isolated per user ID — no data leakage between accounts |
-| **Rate limiting** | 3 requests/minute per user on the research endpoint (slowapi) |
-| **Multi-provider LLM** | Ollama (local) → Groq → Gemini fallback chain; swap with one env var |
-| **Auth** | Supabase Auth (email + Google OAuth) with fallback JWT for local dev |
-| **Dark / light theme** | System-aware with manual toggle, persisted to localStorage |
+> *PaperMind deploys a coordinated team of AI agents across 7 academic databases, summarizes every relevant paper, and synthesizes a fully cited research report — automatically.*
 
 ---
 
-## Architecture
+[Features](#-features) · [Architecture](#-architecture) · [Agent Pipeline](#-agent-pipeline) · [Tech Stack](#-tech-stack) · [API](#-api-reference) · [Screenshots](#-screenshots)
+
+</div>
+
+---
+
+## The Problem
+
+Literature reviews are the most time-consuming part of academic research. A researcher manually searching arXiv, PubMed, Semantic Scholar, and cross-referencing citations can spend **days** before writing a single sentence. And when they do write, citations get misattributed — a trust-breaking mistake in academic work.
+
+**PaperMind solves this end-to-end.**
+
+---
+
+## ✨ Features
+
+### Core Research Engine
+- **7 academic databases searched in parallel** — arXiv, Semantic Scholar, OpenAlex, PubMed, Europe PMC, Crossref, CORE + Tavily web fallback
+- **Multi-agent synthesis** — not a summary of one paper, but a cross-paper synthesis identifying consensus, contradictions, trends, and gaps
+- **Structured report sections** — Executive Summary, Methodology Landscape, Key Findings, Contradictions & Debates, Emerging Trends, Limitations, Research Gaps
+- **Live token streaming** — report streams word-by-word via WebSocket as the LLM generates it
+
+### Citation Intelligence
+- **Clickable inline citations** — every `[N]` in the report links directly to the source paper
+- **Citation validation** — backend tracks all reference numbers issued; any `[N]` the LLM invents beyond the reference list is flagged inline as `[N⚠]` with a warning banner
+- **Structured reference objects** — every reference carries title, authors, year, URL, and source database
+
+### Citation Graph
+- **Interactive D3.js force graph** — visualize how papers cite each other
+- **Neighbor highlighting** on hover — instantly see a paper's connections
+- **Filter panel** — filter by source database, year range, minimum citation count
+- **Year-based color encoding** — plasma gradient from oldest to newest papers
+- **Statistics bar** — total nodes, edges, most-cited paper
+- **Export PNG** — download the graph as an image
+- **Detail panel** — click any node to see abstract, authors, full citation string with one-click copy
+- **Zoom controls** — fit-to-view, zoom in/out
+
+### PDF Knowledge Base
+- **Upload your own papers** — PDFs are chunked, embedded (Gemini embeddings), and stored in ChromaDB
+- **RAG agent** retrieves relevant chunks and injects them into the synthesis alongside web-sourced papers
+- **Uploaded papers cited as regular numbered references** — no special status, treated equally
+
+### Sharing & Collaboration
+- **One-click share** — generates a public UUID-linked URL for any completed report
+- **Read-only shared view** — recipients see the full report with no auth required
+- **Export options** — Copy Markdown, Download `.md`, Export PDF, Export Word (`.docx`)
+
+### User Experience
+- **Real-time agent terminal** — watch the pipeline execute live with per-agent status, auto-collapses when report is ready
+- **Follow-up questions** — LLM generates 5 targeted follow-up research directions after each report
+- **Research history** — all sessions saved, searchable, restorable with one click
+- **Feedback system** — floating feedback widget with star rating, category, and message; works for anonymous and authenticated users
+- **Dark / light theme** — persisted in localStorage
+- **Onboarding empty state** — feature cards and example query chips for first-time users
+
+---
+
+## 🏗 Architecture
 
 ```
-Browser (React + Vite)
-│
-│  WebSocket (/api/v1/ws/research)
-│  REST      (/api/v1/*)
-▼
-FastAPI  ──  SlowAPI rate limiter  ──  Supabase JWT auth
-│
-▼
-LangGraph Supervisor  (deterministic state router)
-│
-├── Search Agent ──► arXiv · OpenAlex · EuropePMC
-│                    Crossref · PubMed · S2 · CORE
-│                    (ThreadPoolExecutor, 7 workers)
-│
-├── RAG Agent ───► ChromaDB  ◄── Uploaded PDFs
-│                  (sentence-transformers / all-MiniLM-L6-v2)
-│
-├── Summarizer ──► Per-paper structured summaries (LLM)
-│
-└── Synthesizer ──► Final cited report + follow-up questions (LLM)
-                    Token-level streaming via asyncio queue
+┌─────────────────────────────────────────────────────────────┐
+│                        CLIENT (React 18)                    │
+│  SearchBar → AgentTerminal → ReportView → CitationGraph     │
+│                    WebSocket (live streaming)               │
+└───────────────────────┬─────────────────────────────────────┘
+                        │ WS + REST
+┌───────────────────────▼─────────────────────────────────────┐
+│                   FastAPI  (Python 3.11)                    │
+│   /api/v1/ws/research    — WebSocket research pipeline      │
+│   /api/v1/history        — session CRUD                     │
+│   /api/v1/upload-pdf     — PDF ingestion                    │
+│   /api/v1/citation-graph — Semantic Scholar graph builder   │
+│   /api/v1/share/:token   — public read-only report          │
+│   /api/v1/feedback       — anonymous feedback collection    │
+│                                                             │
+│   SlowAPI rate limiting · JWT auth (Supabase or fallback)   │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+┌───────────────────────▼─────────────────────────────────────┐
+│               LangGraph Research Pipeline                   │
+│                                                             │
+│  ┌──────────┐    ┌──────────┐    ┌─────────────┐           │
+│  │Supervisor│───▶│  Search  │───▶│     RAG     │           │
+│  │ (router) │    │  Agent   │    │   Agent     │           │
+│  └──────────┘    └──────────┘    └─────────────┘           │
+│       ▲               │                 │                   │
+│       │               ▼                 ▼                   │
+│       │         ┌──────────┐    ┌─────────────┐            │
+│       └─────────│Summarizer│───▶│ Synthesizer │──▶ Stream  │
+│                 │  Agent   │    │   Agent     │            │
+│                 └──────────┘    └─────────────┘            │
+└───────────────────────┬─────────────────────────────────────┘
+                        │
+          ┌─────────────┼──────────────┐
+          │             │              │
+    ┌─────▼──────┐ ┌────▼──────┐ ┌────▼──────┐
+    │  Supabase  │ │ ChromaDB  │ │ LLM Pool  │
+    │ (Postgres  │ │ (vectors) │ │ Ollama /  │
+    │  + Auth)   │ │           │ │ Groq /    │
+    └────────────┘ └───────────┘ │ Gemini    │
+                                 └───────────┘
 ```
-
-**State management:** a single `ResearchState` TypedDict flows through the graph. Every agent reads from it and returns a partial update — no shared mutable state.
-
-**Streaming:** the synthesizer writes report tokens into an `asyncio.Queue` via a `contextvars` context variable. The WebSocket handler drains the queue and forwards each token to the browser in real time.
 
 ---
 
-## Tech Stack
+## 🤖 Agent Pipeline
+
+The pipeline is built with **LangGraph** — a stateful directed graph where a Supervisor node routes between specialized agents based on what work remains.
+
+```
+Query
+  │
+  ▼
+Supervisor ──► Search Agent
+  ▲                │  Searches: arXiv · Semantic Scholar · OpenAlex
+  │                │  PubMed · Europe PMC · Crossref · CORE · Tavily
+  │                ▼
+Supervisor ──► RAG Agent
+  ▲                │  Queries ChromaDB with user-uploaded PDFs
+  │                │  Injects relevant chunks into pipeline state
+  │                ▼
+Supervisor ──► Summarizer Agent
+  ▲                │  Summarizes each paper individually
+  │                │  Preserves key findings, methods, limitations
+  │                ▼
+Supervisor ──► Synthesizer Agent
+                   │  Cross-paper synthesis (not per-paper summary)
+                   │  Builds structured reference list [1..N]
+                   │  Validates citation numbers in generated text
+                   │  Streams tokens live via WebSocket
+                   │  Generates 5 follow-up questions (optional)
+                   ▼
+              Report + References + Citation Warnings
+```
+
+### State management
+All agents share a typed `ResearchState` (`LangGraph TypedDict`) that accumulates across nodes:
+
+```python
+class ResearchState(TypedDict):
+    query:               str
+    papers:              list[dict]        # fetched from 7 APIs
+    pdf_chunks:          list[dict]        # from ChromaDB RAG
+    summaries:           list[str]         # per-paper summaries
+    report:              str               # final synthesis
+    references:          list[dict]        # structured [{num, title, url, ...}]
+    citation_warnings:   list[int]         # hallucinated [N] numbers
+    follow_up_questions: list[str]
+    want_follow_up:      bool              # user preference
+    user_id:             Optional[str]
+```
+
+### LLM fallback chain
+The LLM layer uses a priority-ordered fallback: **Ollama → Groq → Gemini**. Any rate limit or connection error on the primary provider is caught and the next available provider is tried transparently — no pipeline interruption.
+
+---
+
+## 🛠 Tech Stack
 
 ### Backend
-| Concern | Technology |
+| Layer | Technology |
 |---|---|
 | API framework | FastAPI 0.115 + Uvicorn |
-| Agent orchestration | LangGraph 0.2 (supervisor pattern) |
-| LLM providers | Ollama · Groq (`llama-3.3-70b`) · Gemini (`gemini-2.5-flash-lite`) |
-| Embeddings | `sentence-transformers/all-MiniLM-L6-v2` (runs locally, free) |
-| Vector store | ChromaDB (local, file-persisted) |
-| PDF parsing | PyMuPDF (fitz) |
-| Auth | Supabase JWT + python-jose fallback |
-| Database | Supabase (Postgres) — research session history |
-| Rate limiting | slowapi 0.1.9 (per-user, 3 req/min on research endpoint) |
+| Agent orchestration | LangGraph 0.2 (stateful directed graph) |
+| LLM providers | Ollama (local) · Groq (llama-3.3-70b) · Gemini 2.5 Flash |
+| LLM abstraction | LangChain Core + provider adapters |
+| Vector store | ChromaDB (persistent, per-user namespaced) |
+| Embeddings | Gemini text-embedding-004 |
+| Database | Supabase (PostgreSQL + pgvector) |
+| Auth | Supabase JWT + fallback HMAC JWT |
+| Rate limiting | SlowAPI (per-IP sliding window) |
+| Streaming | WebSocket token-level via `asyncio.to_thread` |
+| PDF parsing | PyMuPDF + RecursiveCharacterTextSplitter |
+| Academic APIs | arXiv · Semantic Scholar · OpenAlex · PubMed (NCBI) · Europe PMC · Crossref · CORE · Tavily |
 | Observability | LangSmith tracing (optional) |
 
 ### Frontend
-| Concern | Technology |
+| Layer | Technology |
 |---|---|
 | Framework | React 18 + Vite 5 |
 | Markdown rendering | react-markdown + remark-gfm |
-| Citation graph | D3.js v7 (force-directed, lazy-loaded) |
-| PDF export | jsPDF + html2canvas (lazy-loaded) |
-| Word export | docx (lazy-loaded) |
-| Auth | @supabase/supabase-js |
-| Styling | CSS custom properties (no CSS framework) |
-
-### Infrastructure
-| Concern | Technology |
-|---|---|
-| Containerisation | Docker + docker-compose |
-| Deployment | Vercel / Render |
-| CI/CD | GitHub Actions |
-| Secrets | `.env` + platform environment variables |
+| Graph visualization | D3.js v7 (force simulation, zoom, drag, SVG export) |
+| PDF export | jsPDF + html2canvas |
+| Word export | docx.js (Packer) |
+| Auth | Supabase JS client + session storage fallback |
+| Styling | CSS custom properties (design tokens), zero CSS frameworks |
 
 ---
 
-## Project Structure
+## 🔑 Key Engineering Decisions
 
-```
-papermind/
-│
-├── main.py                        # FastAPI app, middleware, router registration
-├── requirements.txt
-├── Dockerfile
-├── docker-compose.yml
-├── render.yaml
-│
-├── core/
-│   ├── config.py                  # Pydantic settings (env-driven)
-│   ├── auth.py                    # JWT decode, Supabase + fallback
-│   ├── database.py                # Supabase session persistence
-│   ├── llm.py                     # Multi-provider LLM factory
-│   ├── vector_store.py            # ChromaDB singleton + user isolation
-│   ├── limiter.py                 # slowapi Limiter (per-user key_func)
-│   ├── events.py                  # StreamEvent / EventType dataclasses
-│   ├── stream_manager.py          # asyncio queue wrapper
-│   ├── stream_context.py          # contextvars for per-request stream
-│   └── logging_config.py         # Structured JSON logging
-│
-├── agents/
-│   ├── state.py                   # ResearchState TypedDict
-│   ├── tools.py                   # Academic API fetchers + RAG tools
-│   ├── graph.py                   # LangGraph graph builder
-│   └── nodes/
-│       ├── supervisor.py          # Deterministic routing logic
-│       ├── search_agent.py        # Parallel multi-source search
-│       ├── rag_agent.py           # ChromaDB retrieval
-│       ├── summarizer_agent.py    # Per-paper LLM summarization
-│       └── synthesizer_agent.py  # Report synthesis + streaming
-│
-├── api/
-│   ├── routes.py                  # Research, upload, history, citation graph endpoints
-│   └── auth_routes.py             # Login, signup, /me endpoints
-│
-└── papermind-react/               # Vite + React frontend
-    ├── index.html
-    ├── public/
-    │   └── favicon.svg
-    └── src/
-        ├── App.jsx                # Root layout, tab switcher (Report / Citation Graph)
-        ├── App.css                # Design tokens, dark/light themes
-        ├── hooks/
-        │   └── useResearch.js     # All API + WebSocket logic, auth hook
-        └── components/
-            ├── SearchBar.jsx      # Query input + follow-up toggle + history dropdown
-            ├── AgentTerminal.jsx  # Live event log
-            ├── ReportView.jsx     # Markdown renderer + export buttons
-            ├── CitationGraph.jsx  # D3 force graph + node detail panel
-            ├── Sidebar.jsx        # Provider status, KB stats, PDF upload
-            ├── LoginModal.jsx     # Email / Google auth
-            └── ThemeToggle.jsx
+**1. LangGraph over raw chains**
+The supervisor-router pattern allows the pipeline to conditionally skip agents (e.g. skip RAG if no PDFs uploaded) and makes the execution graph inspectable and traceable via LangSmith.
 
-```
+**2. Token streaming through WebSocket**
+Instead of waiting for the full report, the synthesizer streams each token through a `StreamManager` context variable injected at graph build time. The frontend accumulates tokens in React state — users see the report appear word-by-word.
 
-## How It Works
+**3. Citation validation at synthesis time**
+The synthesizer builds a numbered reference list *before* calling the LLM, then regex-scans the generated report for `[N]` patterns and diffs them against the known reference set. Invalid citations are surfaced in the API response and rendered visually — not silently passed through.
 
-### Agent Pipeline
+**4. Per-user vector namespacing**
+ChromaDB collections are namespaced by `user_id`, so uploaded PDFs are never cross-contaminated between users. Isolation is enforced at the vector store query layer without relying solely on Supabase RLS.
 
-1. **Supervisor** — reads `ResearchState.current_step` and sets `next` to route to the correct agent. Runs a fixed sequence: `search → rag → summarize → synthesize`.
-
-2. **Search Agent** — launches 7 HTTP fetchers in a `ThreadPoolExecutor`. Each source returns up to 8 papers. Results are deduplicated by title and merged.
-
-3. **RAG Agent** — embeds the query using `all-MiniLM-L6-v2` and retrieves the top-6 chunks from the user's ChromaDB collection. Falls back silently if the KB is empty.
-
-4. **Summarizer Agent** — sends each paper's title + abstract to the LLM with a structured prompt. Summaries are stored in state and passed to the synthesizer.
-
-5. **Synthesizer Agent** — receives all summaries + RAG chunks and generates a long-form research report with citations. Tokens are pushed into an `asyncio.Queue` and streamed to the browser in real time. Optionally generates 3 follow-up questions.
-
-### LLM Fallback Chain
-
-```python
-# core/llm.py
-providers = [
-    ("ollama",  build_ollama),
-    ("groq",    build_groq),
-    ("gemini",  build_gemini),
-]
-# Tries each in order until one succeeds
-```
-
-`LLM_PROVIDER` sets the primary. If it fails at runtime, the next available provider is tried automatically.
+**5. Share tokens constructed on the frontend**
+The share endpoint returns only a UUID token. The frontend constructs `window.location.origin + /share/<token>` — ensuring the link always points to the production frontend, never the API server.
 
 ---
 
-## License
+## 📡 API Reference
 
-MIT — see [LICENSE](LICENSE).
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `WS` | `/api/v1/ws/research` | Optional | Main research pipeline (streaming) |
+| `GET` | `/api/v1/providers` | None | Available LLM providers + active |
+| `GET` | `/api/v1/history` | Required | User's research sessions |
+| `GET` | `/api/v1/history/:id` | Required | Full session report |
+| `DELETE` | `/api/v1/history/:id` | Required | Delete session |
+| `POST` | `/api/v1/history/:id/share` | Required | Generate public share token |
+| `GET` | `/api/v1/share/:token` | None | Fetch shared report (public) |
+| `POST` | `/api/v1/upload-pdf` | Required | Ingest PDF into vector store |
+| `GET` | `/api/v1/vector-store/stats` | Required | KB chunk count + status |
+| `DELETE` | `/api/v1/vector-store/clear` | Required | Clear user's knowledge base |
+| `POST` | `/api/v1/citation-graph` | Optional | Build citation graph from papers |
+| `POST` | `/api/v1/feedback` | None | Submit user feedback |
+
+### WebSocket message protocol
+
+**Client → Server:**
+```json
+{ "query": "transformer attention mechanisms", "follow_up": true }
+```
+
+**Server → Client (event stream):**
+```json
+{ "type": "pipeline_start",    "message": "Starting research pipeline..." }
+{ "type": "agent_start",       "message": "🔍 Searching 6 academic sources...", "data": { "agent": "search_agent" } }
+{ "type": "agent_complete",    "message": "✅ Found 24 papers", "data": { "papers_found": 24 } }
+{ "type": "report_token",      "message": "The" }
+{ "type": "pipeline_complete", "message": "Done", "data": {
+    "report": "...",
+    "papers_found": 24,
+    "steps_taken": 5,
+    "session_id": "uuid",
+    "references": [...],
+    "citation_warnings": [],
+    "follow_up_questions": ["...", "..."]
+  }
+}
+```
+
+**WebSocket close codes:** `4001` session expired · `4029` rate limit reached
 
 ---
 
-## Acknowledgements
+## 🗄 Database Schema
 
-- [LangChain / LangGraph](https://langchain-ai.github.io/langgraph) — agent orchestration
-- [Semantic Scholar API](https://api.semanticscholar.org) — citation graph data
-- [OpenAlex](https://openalex.org) — open academic metadata
-- [Groq](https://groq.com) — fast free LLM inference
-- [Supabase](https://supabase.com) — auth and database
+```sql
+-- Research sessions
+CREATE TABLE research_sessions (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  query        TEXT NOT NULL,
+  report       TEXT,
+  papers_found INTEGER DEFAULT 0,
+  steps_taken  INTEGER DEFAULT 0,
+  share_token  TEXT UNIQUE,
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+
+-- User feedback
+CREATE TABLE feedback (
+  id           UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id      UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  email        TEXT,
+  rating       SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  category     TEXT,
+  message      TEXT NOT NULL,
+  page_context TEXT,
+  created_at   TIMESTAMPTZ DEFAULT now()
+);
+```
+
+---
+
+## 🧠 How PaperMind Compares
+
+| Capability | PaperMind | ChatGPT / Perplexity | Elicit | Connected Papers |
+|---|---|---|---|---|
+| Multi-agent LangGraph pipeline | ✅ | ❌ | ❌ | ❌ |
+| 7 academic databases in parallel | ✅ | Partial | Partial | ❌ |
+| Citation hallucination detection | ✅ | ❌ | Partial | N/A |
+| Live WebSocket token streaming | ✅ | ✅ | ❌ | N/A |
+| PDF upload + RAG synthesis | ✅ | ✅ | ❌ | ❌ |
+| Interactive D3 citation graph | ✅ | ❌ | ❌ | ✅ |
+| Shareable read-only report links | ✅ | ❌ | ❌ | ✅ |
+| LLM provider fallback chain | ✅ | ❌ | ❌ | ❌ |
+| Self-hostable (Ollama) | ✅ | ❌ | ❌ | ❌ |
+| Export PDF / Word / Markdown | ✅ | Partial | Partial | ❌ |
+
+---
+
+## 🔒 Security
+
+- JWT authentication via Supabase (or HMAC fallback for self-hosted deployments)
+- Per-IP rate limiting on all endpoints — research pipeline: 3/min, PDF upload: 10/min
+- User data isolation: vector store namespaced by `user_id`; session queries filtered server-side
+- File validation: PDFs only, 10 MB max, content-type verified server-side
+- Share tokens are single-use UUIDs with no expiry (revocable by deleting the session)
+
+---
+
+## 👤 Author
+
+**Abhishek Verma**
+
+Built end-to-end as a full-stack AI systems project — LLM orchestration, multi-agent graph design, vector retrieval, real-time WebSocket streaming, interactive D3 visualization, and production auth/rate-limiting.
 
 ---
 
 <div align="center">
-  <sub>Built by <a href="https://www.linkedin.com/in/abhishekverma276/"> Abhishek Verma</a></sub>
+
+*This repository is private. Source code available on request.*
+
+**⭐ Star if you find this impressive.**
+
 </div>
