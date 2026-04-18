@@ -39,7 +39,7 @@
 
 ---
 
-[![▶ Watch Live Demo](https://img.shields.io/badge/▶%20WATCH%20LIVE%20DEMO-Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1EecKOrNrOXNoy__oqW27HIUOjfC2bsCc/view)&nbsp;&nbsp;
+[![▶ Watch Live Demo](https://img.shields.io/badge/▶%20WATCH%20LIVE%20DEMO-Google%20Drive-4285F4?style=for-the-badge&logo=googledrive&logoColor=white)](https://drive.google.com/file/d/1rTjv1J9bMLPllicf-6oc3y5q19l4XIrB/view?usp=sharing;
 [![Live App](https://img.shields.io/badge/🌐%20LIVE%20APP-synthara--research.vercel.app-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://synthara-research.vercel.app)
 
 ---
