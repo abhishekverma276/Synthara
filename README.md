@@ -109,6 +109,19 @@ Literature reviews are the most time-consuming part of academic research. A rese
 - **Dark / light theme** — persisted in localStorage
 - **Onboarding empty state** — feature cards and example query chips for first-time users
 
+### Usage Quota System
+- **Per-user daily limits** — Free (3 research / 2 uploads per day), Pro (50 / 20), Enterprise (unlimited)
+- **Quota enforced at the API layer** — WebSocket pipeline closes with code 4028 when limit reached; upload endpoint returns HTTP 429
+- **Live quota bar in sidebar** — shows used / limit with color-coded progress bar (green → amber → red); resets at midnight UTC
+- **Tier badge** — Free / Pro / Enterprise displayed in sidebar
+- **Zero-config for new users** — no row needed; defaults to Free tier automatically
+
+### LLM Cost Tracking
+- **Per-session cost metering** — every LLM call (summarizer, synthesizer, follow-up) records input/output token counts and calculates USD cost using a provider pricing table
+- **Stored per usage log row** — each research session logs its exact API spend to the database
+- **GET /api/v1/costs** — returns total spend, average cost per query, and a day-by-day breakdown for any date range
+- **Pricing table in core/costs.py** — single file to update when provider prices change (Groq, Gemini, Ollama)
+
 ---
 
 ## 🏗 Architecture
