@@ -30,7 +30,7 @@
 
 <br>
 
-![Version](https://img.shields.io/badge/version-1.2-B8860B?style=flat-square)&nbsp;
+![Version](https://img.shields.io/badge/version-1.3-B8860B?style=flat-square)&nbsp;
 ![Status](https://img.shields.io/badge/status-private_beta-22C55E?style=flat-square)&nbsp;
 ![Databases](https://img.shields.io/badge/databases-7_academic_sources-6366F1?style=flat-square)&nbsp;
 ![Agents](https://img.shields.io/badge/agents-4_specialized-EC4899?style=flat-square)
